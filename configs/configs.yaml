@@ -1,0 +1,5 @@
+db_string: "postgres://postgres:password@db/postgres?sslmode=disable"
+
+server_address: "0.0.0.0:55005"
+
+server_timeout: 5s
