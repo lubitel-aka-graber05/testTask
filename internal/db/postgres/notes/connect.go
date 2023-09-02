@@ -28,12 +28,7 @@ func ConnectNoteDB(log *slog.Logger, connData string) (*Database, error) {
 		return nil, err
 	}
 
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS note (username varchar(50), body text)")
-	if err != nil {
-		log.Error(namedFnError, "db.Exec", err)
-
-		return nil, err
-	}
+	
 
 	return &Database{db: db}, nil
 }
