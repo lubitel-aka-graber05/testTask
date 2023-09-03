@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"testTask/internal/db/postgres/auth"
 )
@@ -36,6 +37,18 @@ func AddUserHandler(log *slog.Logger, auth *auth.Database) http.HandlerFunc {
 			return
 		}
 
+		if strings.EqualFold(req.UserName, "") || strings.EqualFold(req.Pass, "") {
+			w.WriteHeader(http.StatusNetworkAuthenticationRequired)
+			res.Status = http.StatusNetworkAuthenticationRequired
+			res.Error = "no auth data"
+			log.Error("AddUserHandler", "Authentication", res.Error)
+			if err := json.NewEncoder(w).Encode(res); err != nil {
+				log.Error("AddUserHandler", "json.Encode", err)
+
+				return
+			}
+		}
+
 		if err := auth.AddUser(req.UserName, req.Pass); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 
@@ -43,6 +56,13 @@ func AddUserHandler(log *slog.Logger, auth *auth.Database) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		log.Info("Create user successful", "Username", req.UserName, "Remote address", r.RemoteAddr)
+		res.Status = http.StatusOK
+		if err := json.NewEncoder(w).Encode(res); err != nil {
+			log.Error("AddUserHandler", "json.Encode", err)
+
+			return
+		}
+
+		log.Info("Create user successful", "Username", req.UserName, "Remote Address", r.RemoteAddr, "Remote host", r.Host)
 	}
 }

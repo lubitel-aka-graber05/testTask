@@ -15,7 +15,9 @@ import (
 func main() {
 	log := logger.SetupLogger()
 
-	cfg, err := config.CreateConfig(log)
+	const path = "configs/configs.yaml"
+
+	cfg, err := config.CreateConfig(log, path)
 	if err != nil {
 		return
 	}

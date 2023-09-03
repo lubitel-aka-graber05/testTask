@@ -14,8 +14,9 @@ type Config struct {
 	ServerTimeout time.Duration `yaml:"server_timeout"`
 }
 
-func CreateConfig(log *slog.Logger) (*Config, error) {
-	f, err := os.Open("configs/configs.yaml")
+func CreateConfig(log *slog.Logger, path string) (*Config, error) {
+	
+	f, err := os.Open(path)
 	if err != nil {
 		log.Error("CreateConfig","os.Open", err)
 		return nil, err

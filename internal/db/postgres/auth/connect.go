@@ -30,12 +30,7 @@ func ConnectUserDB(log *slog.Logger, connData string) (*Database, error) {
 		return nil, err
 	}
 
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS auth (username varchar(50), pass varchar(20))")
-	if err != nil {
-		log.Error(namedFnError, "db.Exec", err)
-
-		return nil, err
-	}
+	
 
 	return &Database{db: db}, nil
 }
