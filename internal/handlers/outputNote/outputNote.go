@@ -19,13 +19,7 @@ type ResponseByName struct {
 	UserName string   `json:"username,omitempty"`
 	Error    string   `json:"error,omitempty"`
 	NoteBody []string `json:"body,omitempty"`
-	Status   int      `json:"status"`
-}
-
-type ResponseAll struct {
-	Notes  map[string][]string `json:"notes,omitempty"`
-	Error  string              `json:"error,omitempty"`
-	Status int                 `json:"status"`
+	Status   int      `json:"statuscode"`
 }
 
 func OutputByNameHandler(log *slog.Logger, auth *auth.Database, notesDB *notes.Database) http.HandlerFunc {
@@ -64,7 +58,8 @@ func OutputByNameHandler(log *slog.Logger, auth *auth.Database, notesDB *notes.D
 		res := ResponseByName{UserName: req.UserName, NoteBody: outData[req.UserName], Status: http.StatusOK}
 
 		if err := json.NewEncoder(w).Encode(res); err != nil {
-			log.Error(err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Error("outputByName", "json.Encode", err)
 
 			return
 		}

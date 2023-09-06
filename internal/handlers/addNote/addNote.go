@@ -16,9 +16,8 @@ type Request struct {
 }
 
 type Response struct {
-	// Status     string `json:"status"`
-	StatusCode int    `json:"statuscode"`
 	Error      string `json:"error,omitempty"`
+	StatusCode int    `json:"statuscode"`
 }
 
 func AddNoteHandler(log *slog.Logger, auth *auth.Database, noteDB *notes.Database) http.HandlerFunc {

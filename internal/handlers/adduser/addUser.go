@@ -15,8 +15,8 @@ type Request struct {
 }
 
 type Response struct {
-	Error  string `json:"error"`
-	Status int    `json:"status"`
+	Error  string `json:"error,omitempty"`
+	Status int    `json:"statuscode"`
 }
 
 func AddUserHandler(log *slog.Logger, auth *auth.Database) http.HandlerFunc {

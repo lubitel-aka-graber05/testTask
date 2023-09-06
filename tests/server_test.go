@@ -20,12 +20,15 @@ import (
 	"testTask/internal/logger"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
-	testUserAuthName = "testuser"
-	testUserAuthPass = "secret"
-	testUserNoteName = "ashot3000"
+	testUserAuthName    = "testuser"
+	testUserAuthPass    = "secret"
+	testUserNoteName    = "ashot3000"
+	testUserNoteBody    = "Здраствуйте, миня завут Ашот"
+	testUserNoteCorrect = "Здравствуйте, меня зовут Ашот"
 )
 
 func TestServer(t *testing.T) {
@@ -66,19 +69,59 @@ func TestServer(t *testing.T) {
 
 	reqAddUser, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/adduser", server.URL), addUserBody)
 	if err != nil {
-		t.Fatal(err)
+		require.Nil(t, err)
 	}
 
 	resAddUser, err := client.Do(reqAddUser)
 	if err != nil {
-		t.Fatal(err)
+		require.Nil(t, err, "request with auth info return error")
 	}
-	// defer resAddUser.Body.Close()
+	defer resAddUser.Body.Close()
 
 	assert.Equal(t, resAddUser.StatusCode, http.StatusOK, "status code not correct")
 	r := bufio.NewReader(resAddUser.Body)
 	buf := &bytes.Buffer{}
 	_, err = r.WriteTo(buf)
 	assert.Nil(t, err)
-	assert.Equal(t, buf.String(), fmt.Sprintf(`{"error":"","status":%d}`+"\n", resAddUser.StatusCode), resAddUser.StatusCode)
+	assert.Equal(t, buf.String(), fmt.Sprintf(`{"statuscode":%d}`+"\n", http.StatusOK))
+
+	buf.Reset()
+
+	addNoteBody := strings.NewReader(fmt.Sprintf(`{"username":"%s","body":"%s"}`, testUserNoteName, testUserNoteBody))
+
+	reqAddNote, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/addnote", server.URL), addNoteBody)
+	if err != nil {
+		require.Nil(t, err)
+	}
+	reqAddNote.SetBasicAuth(testUserAuthName, testUserAuthPass)
+
+	resAddNote, err := client.Do(reqAddNote)
+	if err != nil {
+		require.Nil(t, err)
+	}
+	defer resAddNote.Body.Close()
+
+	require.Equal(t, resAddNote.StatusCode, http.StatusOK)
+
+	_, err = buf.ReadFrom(resAddNote.Body)
+	require.Nil(t, err)
+	require.Equal(t, buf.String(), fmt.Sprintf(`{"statuscode":%d}`+"\n", http.StatusOK))
+
+	buf.Reset()
+
+	outputBody := strings.NewReader(fmt.Sprintf(`{"username":"%s"}`, testUserNoteName))
+
+	reqOutNote, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/outbyname", server.URL), outputBody)
+	require.Nil(t, err)
+	reqOutNote.SetBasicAuth(testUserAuthName, testUserAuthPass)
+
+	resOutNode, err := client.Do(reqOutNote)
+	require.Nil(t, err)
+	defer resOutNode.Body.Close()
+
+	require.Equal(t, resOutNode.StatusCode, http.StatusOK)
+	_, err = buf.ReadFrom(resOutNode.Body)
+	require.Nil(t, err)
+
+	require.Equal(t, buf.String(), fmt.Sprintf(`{"username":"%s","body":["%s"],"statuscode":%d}`+"\n", testUserNoteName, testUserNoteCorrect, http.StatusOK))
 }
